@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "20689636952",
+    "firebase_url": "https://errandz-35050.firebaseio.com",
+    "project_id": "errandz-35050",
+    "storage_bucket": "errandz-35050.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:20689636952:android:15e9f2261ca068353a842d",
+        "android_client_info": {
+          "package_name": "app.infiniverse.grocery"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "20689636952-tbervunfpm6vc4bfem7rsks0dpeu1ud1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.infiniverse.grocery",
+            "certificate_hash": "dab41e5b4cf2c3251f939aab6170ebb612e3485e"
+          }
+        },
+        {
+          "client_id": "20689636952-cnme3mvbqfvrhrv3spr95fl0pn0g8pc0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJaQFymgB-KypskCa01AC7i3Ciyih1CC8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "20689636952-cnme3mvbqfvrhrv3spr95fl0pn0g8pc0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
