@@ -31,23 +31,37 @@ import java.net.URL;
 public class ProductDetailActivity extends AppCompatActivity {
 
     public static final String PREFS = "PREFS";
-    TextView tvProductName, tvProductDesc, tvMRP, tvPrice, tvSaved, tvSavedPer, tvQty, addtocart, product_id, buy_now;
+    TextView tvProductName, tvProductDesc, tvMRP, tvPrice, tvSaved, tvSavedPer, tvQty, addtocart, product_id, buy_now, product_short_desc;
     ImageView ivProductImage, add, remove;
     String p_id;
     SharedPreferences sp;
     ScrollView view;
     private ProgressBar mProgressBar;
     AddToCart addToCart;
+
+    private String string_product_id, product_name, product_description, product_price, product_selling_price, product_short_description, product_discount, product_image_url;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_detail);
+
+        //get strings from intent
+        string_product_id = getIntent().getStringExtra("product_id");
+        product_name = getIntent().getStringExtra("product_name");
+        product_description = getIntent().getStringExtra("product_description");
+        product_price = getIntent().getStringExtra("product_price");
+        product_selling_price = getIntent().getStringExtra("product_selling_price");
+        product_short_description = getIntent().getStringExtra("product_short_description");
+        product_discount = getIntent().getStringExtra("product_discount");
+        product_image_url = getIntent().getStringExtra("product_image");
+
         view = findViewById(R.id.product_page);
         mProgressBar = findViewById(R.id.progressBar);
         mProgressBar.setVisibility(View.VISIBLE);
         addToCart=new AddToCart(ProductDetailActivity.this);
-        Bundle extras = getIntent().getExtras();
-        p_id = extras.getString("p_id");
+//        Bundle extras = getIntent().getExtras();
+//        p_id = extras.getString("p_id");
 
         sp = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 
@@ -63,6 +77,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         add = findViewById(R.id.add);
         remove = findViewById(R.id.remove);
         buy_now = findViewById(R.id.buynow);
+        product_short_desc = findViewById(R.id.product_short_desc);
         tvMRP.setPaintFlags(tvMRP.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
 
 
@@ -128,9 +143,26 @@ public class ProductDetailActivity extends AppCompatActivity {
             }
         });
 
+        //set product values to text views
+        tvProductName.setText(product_name);
+        tvProductDesc.setText(product_description);
+        tvMRP.setText(product_price);
+        tvPrice.setText(product_selling_price);
+        product_short_desc.setText(product_short_description);
+        Picasso.with(ProductDetailActivity.this).load(product_image_url).into(ivProductImage);
 
-        ProductDetail productDetail = new ProductDetail();
-        productDetail.execute();
+
+//        double p_mrp = Double.parseDouble(product_price);
+//        double p_sp = Double.parseDouble(product_selling_price);
+//        double p_dp = (p_mrp - p_sp);
+//        double p_dp_p = p_dp / (p_mrp / 100);
+
+        mProgressBar.setVisibility(View.GONE);
+        view.setVisibility(View.VISIBLE);
+
+
+//        ProductDetail productDetail = new ProductDetail();
+//        productDetail.execute();
 
     }
 

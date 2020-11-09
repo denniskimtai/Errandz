@@ -17,6 +17,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,11 +27,18 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.daimajia.slider.library.Indicators.PagerIndicator;
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.DefaultSliderView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GetTokenResult;
+import com.google.firebase.auth.OAuthProvider;
 import com.mikepenz.itemanimators.AlphaCrossFadeAnimator;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -49,6 +57,13 @@ import com.mikepenz.materialdrawer.model.interfaces.Nameable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.builder.api.Api;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Token;
+import org.scribe.model.Verb;
+import org.scribe.oauth.OAuthService;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -63,6 +78,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class HomeActivity extends AppCompatActivity
         implements BaseSliderView.OnSliderClickListener,AddorRemoveCallbacks {
@@ -86,6 +102,10 @@ public class HomeActivity extends AppCompatActivity
 
     private FirebaseAuth firebaseAuth;
 
+    private AlertDialog.Builder builder;
+
+    private String GET_IMAGE_URL = "http://errandz.xyz/denniskimtai1/get_product_image.php";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +118,8 @@ public class HomeActivity extends AppCompatActivity
         mProgressBar =findViewById(R.id.progressBar);
 
         firebaseAuth = FirebaseAuth.getInstance();
+
+        builder = new AlertDialog.Builder(this);
 
         handleIntent(getIntent());
         final IProfile profile;
@@ -475,9 +497,11 @@ public class HomeActivity extends AppCompatActivity
         mProgressBar.setVisibility(View.VISIBLE);
         class BestDeals extends AsyncTask<String, Void, String> {
 
+            String keynames;
+
             @Override
             protected String doInBackground(String... params) {
-                String productUrl = getResources().getString(R.string.base_url) + "getBestSellingProducts/";
+                String productUrl = "http://errandz.xyz/denniskimtai1/fetch_products.php";
 
                 try {
                     URL url = new URL(productUrl);
@@ -502,60 +526,122 @@ public class HomeActivity extends AppCompatActivity
             @Override
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
-                AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
                 builder.setTitle("Received Message");
 
+//                try {
+//
+//                    JSONArray productArray = new JSONArray(s);
+//
+//                    String[] product_ids = new String[productArray.length()];
+//                    String[] product_names = new String[productArray.length()];
+//                    String[] product_descs = new String[productArray.length()];
+//                    String[] product_imgs = new String[productArray.length()];
+//                    String[] product_prices = new String[productArray.length()];
+//                    String[] product_brands = new String[productArray.length()];
+//                    String[] product_sps = new String[productArray.length()];
+//                    String[] product_dps = new String[productArray.length()];
+//
+//
+//                    JSONObject json_data = new JSONObject();
+//
+//
+//                    for (int i = 0; i < productArray.length(); i++) {
+//                        json_data = productArray.getJSONObject(i);
+//                        product_ids[i] = json_data.getString("product_id");
+//                        product_names[i] = json_data.getString("product_title");
+//                        product_descs[i] = json_data.getString("product_description");
+//                        product_imgs[i] = "http://errandz.xyz/wp/wp-content/uploads/2020/10/coke-soda.jpg";
+//                        product_prices[i] = json_data.getString("_sale_price") + " /-";
+//                        product_brands[i] = json_data.getString("product_short_description");
+//                        product_sps[i] = "\u20B9" + json_data.getString("_price") + " /-";
+//                        double p_mrp = Double.parseDouble(json_data.getString("_sale_price"));
+//                        double p_sp = Double.parseDouble(json_data.getString("_price"));
+//                        double p_dp = (p_mrp - p_sp) / (p_mrp / 100);
+//                        int p_dp_i = (int) p_dp;
+//                        product_dps[i] = String.valueOf(p_dp_i);
+//
+//
+//                    }
+//
+//                    l2.setVisibility(View.VISIBLE);
+//                    mProgressBar.setVisibility(View.GONE);
+//
+//                    RecyclerView product_recyclerview = findViewById(R.id.recyclerview_best_deals);
+//                    product_recyclerview.setNestedScrollingEnabled(false);
+//                    product_recyclerview.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
+//                    product_recyclerview.setAdapter(new Recent_Products_Adapter(product_ids, product_names, product_descs, product_imgs, product_prices, product_brands, product_sps, product_dps, HomeActivity.this));
+//
+//                } catch (JSONException e) {
+//                    builder.setCancelable(true);
+//                    builder.setTitle("No Internet Connection");
+//                    builder.setMessage(e.getMessage());
+//                    builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//
+//                        }
+//                    });
+//                    builder.show();
+//                }
+
                 try {
+                    JSONObject productObject = new JSONObject(s);
 
-                    JSONArray productArray = new JSONArray(s);
+                    Iterator iterator = productObject.keys();
+                    String key;
+                    final int i = 0;
 
-                    String[] product_ids = new String[productArray.length()];
-                    String[] product_names = new String[productArray.length()];
-                    String[] product_descs = new String[productArray.length()];
-                    String[] product_imgs = new String[productArray.length()];
-                    String[] product_prices = new String[productArray.length()];
-                    String[] product_brands = new String[productArray.length()];
-                    String[] product_sps = new String[productArray.length()];
-                    String[] product_dps = new String[productArray.length()];
+                    String[] product_ids = new String[productObject.length()];
+                    String[] product_names = new String[productObject.length()];
+                    String[] product_descs = new String[productObject.length()];
+                    final String[] product_imgs = new String[productObject.length()];
+                    String[] product_prices = new String[productObject.length()];
+                    String[] product_brands = new String[productObject.length()];
+                    String[] product_sps = new String[productObject.length()];
+                    String[] product_dps = new String[productObject.length()];
 
+                    while (iterator.hasNext()) {
+                        key = (String) iterator.next();
 
-                    JSONObject json_data = new JSONObject();
-                    for (int i = 0; i < productArray.length(); i++) {
-                        json_data = productArray.getJSONObject(i);
-                        product_ids[i] = json_data.getString("id");
-                        product_names[i] = json_data.getString("name");
-                        product_descs[i] = json_data.getString("description");
-                        product_imgs[i] = json_data.getString("image");
-                        product_prices[i] = json_data.getString("mrp") + " /-";
-                        product_brands[i] = json_data.getString("brand");
-                        product_sps[i] = "\u20B9" + json_data.getString("selling_price") + " /-";
-                        double p_mrp = Double.parseDouble(json_data.getString("mrp"));
-                        double p_sp = Double.parseDouble(json_data.getString("selling_price"));
+                        final JSONObject obj = (JSONObject) productObject.get(key);
+
+                        JSONObject metaObjectThumbnailId = (JSONObject) obj.get("2");
+                        JSONObject metaObjectRegularPrice = (JSONObject) obj.get("3");
+                        JSONObject metaObjectSalePrice = (JSONObject) obj.get("4");
+
+                        product_ids[i] = obj.getString("product_id");
+                        product_names[i] = obj.getString("product_title");
+                        product_descs[i] = obj.getString("product_description");
+                        product_imgs[i] = metaObjectThumbnailId.getString("_thumbnail_id");
+                        product_prices[i] = metaObjectRegularPrice.getString("_regular_price") + " /-";
+                        product_brands[i] = obj.getString("product_short_description");
+                        product_sps[i] = metaObjectSalePrice.getString("_sale_price") + " /-";
+                        double p_mrp = Double.parseDouble(metaObjectRegularPrice.getString("_regular_price"));
+                        double p_sp = Double.parseDouble(metaObjectSalePrice.getString("_sale_price"));
                         double p_dp = (p_mrp - p_sp) / (p_mrp / 100);
                         int p_dp_i = (int) p_dp;
                         product_dps[i] = String.valueOf(p_dp_i);
 
 
+                        l2.setVisibility(View.VISIBLE);
+                        mProgressBar.setVisibility(View.GONE);
+
+                        RecyclerView product_recyclerview = findViewById(R.id.recyclerview_best_deals);
+                        product_recyclerview.setNestedScrollingEnabled(false);
+                        product_recyclerview.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
+                        product_recyclerview.setAdapter(new Recent_Products_Adapter(product_ids, product_names, product_descs, product_imgs, product_prices, product_brands, product_sps, product_dps, HomeActivity.this));
+
+
                     }
 
-                    l2.setVisibility(View.VISIBLE);
-                    mProgressBar.setVisibility(View.GONE);
 
-                    RecyclerView product_recyclerview = findViewById(R.id.recyclerview_best_deals);
-                    product_recyclerview.setNestedScrollingEnabled(false);
-                    product_recyclerview.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
-                    product_recyclerview.setAdapter(new Recent_Products_Adapter(product_ids, product_names, product_descs, product_imgs, product_prices, product_brands, product_sps, product_dps, HomeActivity.this));
+
                 } catch (JSONException e) {
-                    builder.setCancelable(true);
-                    builder.setTitle("No Internet Connection");
-//                    builder.setMessage(s);
-                    builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
 
-                        }
-                    });
+                    builder.setMessage(e.getMessage());
                     builder.show();
+
                 }
 
             }

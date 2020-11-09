@@ -29,8 +29,6 @@ public class Splash extends FragmentActivity {
         setContentView(R.layout.activity_splash);
 
         logo = findViewById(R.id.logo);
-        appTitle = findViewById(R.id.grocery);
-        appSlogan = findViewById(R.id.slogan);
 
         firebaseAuth = FirebaseAuth.getInstance();
 

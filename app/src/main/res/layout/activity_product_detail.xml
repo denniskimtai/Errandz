@@ -3,10 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#fff"
     tools:context=".ProductDetailActivity">
 
     <ScrollView
+        android:background="#E3DFDF"
         android:id="@+id/product_page"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,6 +20,12 @@
             android:orientation="vertical"
             android:layout_height="wrap_content">
 
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardElevation="5dp"
+                android:layout_marginBottom="5dp"
+                app:cardCornerRadius="5dp">
 
             <FrameLayout
                 android:id="@+id/productimage"
@@ -38,10 +46,15 @@
 
             </FrameLayout>
 
-            <TextView
+            </android.support.v7.widget.CardView>
+
+
+            <android.support.v7.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/grid_line"/>
+                android:layout_height="wrap_content"
+                app:cardElevation="5dp"
+                android:layout_marginBottom="5dp"
+                app:cardCornerRadius="5dp">
 
             <LinearLayout
                 android:id="@+id/name"
@@ -49,7 +62,7 @@
                 android:layout_height="wrap_content"
                 android:background="#fff"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="10dp">
 
 
                 <TextView
@@ -94,16 +107,37 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="Rs 290 /-"
+                    android:text="Ksh 290 /-"
+                    android:textColor="@color/blue_grey"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/product_desc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:singleLine="false"
+                    android:text="Product Description Here"
                     android:textColor="@color/blue_grey"
                     android:textSize="13sp" />
 
             </LinearLayout>
 
+            </android.support.v7.widget.CardView>
+
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/grid_line"/>
+                android:layout_height="wrap_content"
+                android:text="PRODUCT DETAILS"
+                android:layout_margin="8dp"
+                android:textStyle="bold"/>
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardElevation="5dp"
+                android:layout_marginBottom="5dp"
+                app:cardCornerRadius="5dp">
 
             <LinearLayout
                 android:id="@+id/rating"
@@ -112,28 +146,31 @@
                 android:layout_below="@+id/name"
                 android:background="#fff"
                 android:orientation="vertical"
-                android:paddingLeft="16dp"
                 android:visibility="visible">
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Product Description"
+                    android:layout_margin="10dp"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/product_short_desc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="16dp"
+                    android:singleLine="false"
+                    android:text="Product Description Here"
+                    android:textColor="@color/blue_grey"
+                    android:textSize="13sp" />
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/product_desc"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="16dp"
-                android:singleLine="false"
-                android:text="Product Description Here"
-                android:textColor="@color/blue_grey"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/grid_line"/>
+            </android.support.v7.widget.CardView>
 
             <!--******add to cart******-->
 

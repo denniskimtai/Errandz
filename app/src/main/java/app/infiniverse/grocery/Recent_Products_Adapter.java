@@ -15,7 +15,18 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -35,6 +46,9 @@ public class Recent_Products_Adapter extends RecyclerView.Adapter<Recent_Product
     private String[] product_brand;
     private String[] product_sp;
     private String[] product_dp;
+
+    private String GET_IMAGE_URL = "http://errandz.xyz/denniskimtai1/get_product_image.php";
+    String image_url;
 
     public Recent_Products_Adapter(String[] product_id, String[] product_name, String[] product_desc, String[] product_img, String[] product_price, String[] product_brand, String[] product_sp, String[] product_dp, Context context) {
         this.product_id = product_id;
@@ -58,13 +72,13 @@ public class Recent_Products_Adapter extends RecyclerView.Adapter<Recent_Product
     }
 
     @Override
-    public void onBindViewHolder(ProductsViewHolder holder, int position) {
+    public void onBindViewHolder(final ProductsViewHolder holder, int position) {
         String id = product_id[position];
         String name = product_name[position];
         String desc = product_desc[position];
-        String img = context.getResources().getString(R.string.img_base_url) + "product_images/" + product_img[position];
+        final String img = product_img[position];
         String price = product_price[position];
-        String selling_price = product_sp[position].substring(1);
+        String selling_price = product_sp[position];
         String brand = product_brand[position];
         String discount = product_dp[position];
 
@@ -79,11 +93,44 @@ public class Recent_Products_Adapter extends RecyclerView.Adapter<Recent_Product
         if (Integer.parseInt(discount) <= 0) {
             holder.pro_discount.setVisibility(View.GONE);
         }
-        if(selling_price.trim().equals("\u20B9"+price.trim())){
+        if(selling_price.trim().equals(price.trim())){
             holder.pro_price.setVisibility(View.GONE);
         }
 
-        Picasso.with(context).load(img).placeholder(R.drawable.watermark_icon).into(holder.pro_img);
+        //get image url
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, GET_IMAGE_URL, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+                String s1 = response.replace("\\", "");
+
+                image_url = "http://www.errandz.xyz/wp/wp-content/uploads/" + s1.replace("\"", "");
+
+                Picasso.with(context).load(image_url).into(holder.pro_img);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+                Toast.makeText(context, error.getMessage(), Toast.LENGTH_SHORT).show();
+
+            }
+        }){
+            //send params needed to db
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+
+                    params.put("image_id", img);
+
+
+                return params;
+
+            }
+        };
+
+        Volley.newRequestQueue(context).add(stringRequest);
 
     }
 
@@ -124,22 +171,68 @@ public class Recent_Products_Adapter extends RecyclerView.Adapter<Recent_Product
             layout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Product detail = new Product();
-                    detail.startProductDetailActivity(pro_id.getText().toString(), context);
+
+//                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+//                    builder.setMessage("id " + pro_id.getText().toString() + "\n"
+//                            + "name " + pro_name.getText().toString() + "\n"
+//                            + "desc " + pro_desc.getText().toString() + "\n"
+//                            + "price " + pro_price.getText().toString() + "\n"
+//                            + "sp " + pro_sp.getText().toString() + "\n"
+//                            + "short desc " + pro_brand.getText().toString() + "\n"
+//                            + "discount " + pro_discount.getText().toString());
+//
+//                    builder.show();
+
+                    //go to product detail activity with product details
+                    Intent intent = new Intent(context, ProductDetailActivity.class);
+
+                    intent.putExtra("product_id", pro_id.getText().toString());
+                    intent.putExtra("product_name", pro_name.getText().toString());
+                    intent.putExtra("product_description", pro_desc.getText().toString());
+                    intent.putExtra("product_price", pro_price.getText().toString());
+                    intent.putExtra("product_selling_price", pro_sp.getText().toString());
+                    intent.putExtra("product_short_description", pro_brand.getText().toString());
+                    intent.putExtra("product_discount", pro_discount.getText().toString());
+                    intent.putExtra("product_image", image_url);
+
+                    context.startActivity(intent);
+
                 }
             });
             pro_img.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Product detail = new Product();
-                    detail.startProductDetailActivity(pro_id.getText().toString(), context);
+                    //go to product detail activity with product details
+                    Intent intent = new Intent(context, ProductDetailActivity.class);
+
+                    intent.putExtra("product_id", pro_id.getText().toString());
+                    intent.putExtra("product_name", pro_name.getText().toString());
+                    intent.putExtra("product_description", pro_desc.getText().toString());
+                    intent.putExtra("product_price", pro_price.getText().toString());
+                    intent.putExtra("product_selling_price", pro_sp.getText().toString());
+                    intent.putExtra("product_short_description", pro_brand.getText().toString());
+                    intent.putExtra("product_discount", pro_discount.getText().toString());
+                    intent.putExtra("product_image", image_url);
+
+                    context.startActivity(intent);
                 }
             });
             pro_name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Product detail = new Product();
-                    detail.startProductDetailActivity(pro_id.getText().toString(), context);
+                    //go to product detail activity with product details
+                    Intent intent = new Intent(context, ProductDetailActivity.class);
+
+                    intent.putExtra("product_id", pro_id.getText().toString());
+                    intent.putExtra("product_name", pro_name.getText().toString());
+                    intent.putExtra("product_description", pro_desc.getText().toString());
+                    intent.putExtra("product_price", pro_price.getText().toString());
+                    intent.putExtra("product_selling_price", pro_sp.getText().toString());
+                    intent.putExtra("product_short_description", pro_brand.getText().toString());
+                    intent.putExtra("product_discount", pro_discount.getText().toString());
+                    intent.putExtra("product_image", image_url);
+
+                    context.startActivity(intent);
 
                 }
             });
