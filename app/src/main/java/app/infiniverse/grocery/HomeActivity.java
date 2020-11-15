@@ -29,7 +29,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
+import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -66,7 +68,6 @@ import org.json.JSONObject;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.Api;
 import org.scribe.model.OAuthRequest;
-import org.scribe.model.Response;
 import org.scribe.model.Token;
 import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
@@ -111,7 +112,7 @@ public class HomeActivity extends AppCompatActivity
 
     private AlertDialog.Builder builder;
 
-    private String GET_IMAGE_URL = "http://errandz.xyz/denniskimtai1/get_product_image.php";
+    private String GET_CATEGORIES_URL = "http://errandz.xyz/woocommerce/get_categories.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,7 +137,7 @@ public class HomeActivity extends AppCompatActivity
             profile = new ProfileDrawerItem().withName("Not Logged in").withEmail("Not logged in").withIcon(R.drawable.icon).withTag("RKS");
 
         } else {
-            profile = new ProfileDrawerItem().withName(firebaseAuth.getCurrentUser().getDisplayName()).withEmail(firebaseAuth.getCurrentUser().getEmail()).withIcon(R.drawable.icon).withTag("CUSTOMER");
+            profile = new ProfileDrawerItem().withName(firebaseAuth.getCurrentUser().getDisplayName()).withEmail(firebaseAuth.getCurrentUser().getEmail()).withIcon(R.drawable.favicon).withTag("CUSTOMER");
 
         }
 
@@ -254,12 +255,15 @@ public class HomeActivity extends AppCompatActivity
 
                             } else if (drawerItem.getTag().toString().equals("CATEGORIES")) {
 
+
                             } else if (drawerItem.getTag().toString().equals("SUB_CATEGORIES")) {
+
                                 Intent intent = new Intent(HomeActivity.this, Category_wise_products.class);
                                 intent.putExtra("sub_cat_id", String.valueOf(drawerItem.getIdentifier()));
-                                intent.putExtra("cart_count",""+cart_count);
+                                intent.putExtra("cart_count",""+ cart_count);
                                 intent.putExtra("sub_category", ((Nameable)drawerItem).getName().toString());
                                 startActivity(intent);
+
                             }
                         }
 
@@ -295,65 +299,148 @@ public class HomeActivity extends AppCompatActivity
 
             @Override
             protected String doInBackground(String... params) {
-                String productUrl = getResources().getString(R.string.base_url) + "getCategoryAndSubCategory/";
+//                String productUrl = getResources().getString(R.string.base_url) + "getCategoryAndSubCategory/";
+//
+//                try {
+//                    URL url = new URL(productUrl);
+//
+//                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+//                    httpURLConnection.setRequestMethod("POST");
+//                    httpURLConnection.setDoInput(true);
+//                    httpURLConnection.setDoOutput(true);
+//
+//                    InputStream inputStream = httpURLConnection.getInputStream();
+//                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+//                    String result = "", line = "";
+//                    while ((line = bufferedReader.readLine()) != null) {
+//                        result += line;
+//                    }
+//                    return result;
+//                } catch (Exception e) {
+//                    return e.toString();
+//                }
 
-                try {
-                    URL url = new URL(productUrl);
-
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                    httpURLConnection.setRequestMethod("POST");
-                    httpURLConnection.setDoInput(true);
-                    httpURLConnection.setDoOutput(true);
-
-                    InputStream inputStream = httpURLConnection.getInputStream();
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String result = "", line = "";
-                    while ((line = bufferedReader.readLine()) != null) {
-                        result += line;
-                    }
-                    return result;
-                } catch (Exception e) {
-                    return e.toString();
-                }
+                return "";
             }
 
             @Override
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
-                AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
-                builder.setTitle("Received Message");
-                try {
 
-                    JSONObject json_data = new JSONObject(s);
-                    Iterator<String> temp = json_data.keys();
-                    while (temp.hasNext()) {
-                        String key = temp.next();
-                        JSONArray sub_cat = json_data.getJSONArray(key);
-                        ExpandableDrawerItem item = new ExpandableDrawerItem().withName(key.replace("&amp;","&")).withIcon(R.drawable.ic_filter_list_black).withIdentifier(0).withSelectable(false).withTag("CATEGORIES");
-                        JSONObject sub_cat_json_data = new JSONObject();
-                        for (int i = 0; i < sub_cat.length(); i++) {
-                            sub_cat_json_data = sub_cat.getJSONObject(i);
-//                            product_ids[i] = json_data.getString("id");
-                            item.withSubItems(new SecondaryDrawerItem().withLevel(2).withName(sub_cat_json_data.getString("sub_category").replace("&amp;","&")).withIcon(R.drawable.ic_minus_black).withIdentifier(Integer.parseInt(sub_cat_json_data.getString("id"))).withTag("SUB_CATEGORIES"));
+                //get categories from api
+                StringRequest request = new StringRequest(Request.Method.GET,
+                        GET_CATEGORIES_URL, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
 
+                        AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+                        builder.setTitle("Received Message");
+                        try {
+
+                            JSONArray jsonArray = new JSONArray(response);
+
+                            for (int i = 0; i < jsonArray.length(); i++){
+
+                                JSONObject obj = jsonArray.getJSONObject(i);
+
+                                String category_name = obj.getString("category_name");
+
+                                ExpandableDrawerItem item = new ExpandableDrawerItem().withName(category_name).withIcon(R.drawable.favicon).withIdentifier(0).withSelectable(false).withTag("CATEGORIES");
+
+                                item.withSubItems(new SecondaryDrawerItem().withLevel(2).withName(obj.getString("slug")).withIcon(R.drawable.ic_minus_black).withIdentifier(Integer.parseInt(obj.getString("category_id"))).withTag("SUB_CATEGORIES"));
+                                result.addItem(item);
+                            }
+
+//                            while (temp.hasNext()) {
+//                                String key = temp.next();
+//                                Toast.makeText(HomeActivity.this, key, Toast.LENGTH_SHORT).show();
+////                                JSONArray sub_cat = json_data.getJSONArray(key);
+//                                ExpandableDrawerItem item = new ExpandableDrawerItem().withName(key.replace("&amp;","&")).withIcon(R.drawable.ic_filter_list_black).withIdentifier(0).withSelectable(false).withTag("CATEGORIES");
+//                                JSONObject sub_cat_json_data = new JSONObject();
+//                                for (int i = 0; i < sub_cat.length(); i++) {
+//                                    sub_cat_json_data = sub_cat.getJSONObject(i);
+//        //                            product_ids[i] = json_data.getString("id");
+//                                    item.withSubItems(new SecondaryDrawerItem().withLevel(2).withName(sub_cat_json_data.getString("sub_category").replace("&amp;","&")).withIcon(R.drawable.ic_minus_black).withIdentifier(Integer.parseInt(sub_cat_json_data.getString("id"))).withTag("SUB_CATEGORIES"));
+//
+//
+//                                }
+//                                result.addItem(item);
+//                            }
+
+        //                    Toast.makeText(HomeActivity.this, ""+json_data.length(), Toast.LENGTH_SHORT).show();
+                        } catch (JSONException e) {
+                            builder.setCancelable(true);
+                            builder.setTitle("No Internet Connection");
+                            builder.setMessage(e.toString());
+                            builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                }
+                            });
+                            builder.show();
+                        }
 
                         }
-                        result.addItem(item);
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                        builder.setCancelable(true);
+                        builder.setTitle("No Internet Connection");
+                        builder.setMessage(error.getMessage());
+                        builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        });
+                        builder.show();
+
                     }
+                });
 
-//                    Toast.makeText(HomeActivity.this, ""+json_data.length(), Toast.LENGTH_SHORT).show();
-                } catch (JSONException e) {
-                    builder.setCancelable(true);
-                    builder.setTitle("No Internet Connection1");
-                    builder.setMessage(e.toString());
-                    builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
+                Volley.newRequestQueue(HomeActivity.this).add(request);
 
-                        }
-                    });
-                    builder.show();
-                }
+                request.setRetryPolicy(new DefaultRetryPolicy(
+                        100000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+//                AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+//                builder.setTitle("Received Message");
+//                try {
+//
+//                    JSONObject json_data = new JSONObject(s);
+//                    Iterator<String> temp = json_data.keys();
+//                    while (temp.hasNext()) {
+//                        String key = temp.next();
+//                        JSONArray sub_cat = json_data.getJSONArray(key);
+//                        ExpandableDrawerItem item = new ExpandableDrawerItem().withName(key.replace("&amp;","&")).withIcon(R.drawable.ic_filter_list_black).withIdentifier(0).withSelectable(false).withTag("CATEGORIES");
+//                        JSONObject sub_cat_json_data = new JSONObject();
+//                        for (int i = 0; i < sub_cat.length(); i++) {
+//                            sub_cat_json_data = sub_cat.getJSONObject(i);
+////                            product_ids[i] = json_data.getString("id");
+//                            item.withSubItems(new SecondaryDrawerItem().withLevel(2).withName(sub_cat_json_data.getString("sub_category").replace("&amp;","&")).withIcon(R.drawable.ic_minus_black).withIdentifier(Integer.parseInt(sub_cat_json_data.getString("id"))).withTag("SUB_CATEGORIES"));
+//
+//
+//                        }
+//                        result.addItem(item);
+//                    }
+//
+////                    Toast.makeText(HomeActivity.this, ""+json_data.length(), Toast.LENGTH_SHORT).show();
+//                } catch (JSONException e) {
+//                    builder.setCancelable(true);
+//                    builder.setTitle("No Internet Connection1");
+//                    builder.setMessage(e.toString());
+//                    builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//
+//                        }
+//                    });
+//                    builder.show();
+//                }
             }
 
             @Override
@@ -959,7 +1046,6 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
 
         int id = item.getItemId();
 

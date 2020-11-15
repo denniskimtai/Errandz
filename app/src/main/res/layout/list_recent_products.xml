@@ -26,7 +26,7 @@
                 android:id="@+id/product_img"
                 android:layout_width="match_parent"
                 android:layout_height="130dp"
-                android:src="@drawable/watermark_icon" />
+                android:src="@drawable/favicon" />
 
             <TextView
                 android:id="@+id/discount"

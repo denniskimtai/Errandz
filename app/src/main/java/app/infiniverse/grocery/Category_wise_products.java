@@ -21,6 +21,13 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +41,8 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Category_wise_products extends AppCompatActivity implements AddorRemoveCallbacks {
 
@@ -43,6 +52,8 @@ public class Category_wise_products extends AppCompatActivity implements AddorRe
     ConstraintLayout cl;
     int cart_count;
     private ProgressBar mProgressBar;
+
+    private final String GET_PRODUCT_BY_CATEGORY_URL = "http://errandz.xyz/woocommerce/get_product_by_category.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +76,7 @@ public class Category_wise_products extends AppCompatActivity implements AddorRe
         final String sub_cat_id = bundle.getString("sub_cat_id");
         final String sub_category = bundle.getString("sub_category");
 
-        getSupportActionBar().setTitle(sub_category);
+        getSupportActionBar().setTitle("");
 
 
         mProgressBar.setVisibility(View.VISIBLE);
@@ -74,92 +85,188 @@ public class Category_wise_products extends AppCompatActivity implements AddorRe
 
             @Override
             protected String doInBackground(String... params) {
-                String productUrl = getResources().getString(R.string.base_url) + "getProductsOfSubCategory/" + sub_cat_id;
+//                String productUrl = getResources().getString(R.string.base_url) + "getProductsOfSubCategory/" + sub_cat_id;
+//
+//                try {
+//                    URL url = new URL(productUrl);
+//
+//                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+//                    httpURLConnection.setRequestMethod("POST");
+//                    httpURLConnection.setDoInput(true);
+//                    httpURLConnection.setDoOutput(true);
+//
+//                    InputStream inputStream = httpURLConnection.getInputStream();
+//                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+//                    String result = "", line = "";
+//                    while ((line = bufferedReader.readLine()) != null) {
+//                        result += line;
+//                    }
+//                    return result;
+//                } catch (Exception e) {
+//                    return e.toString();
+//                }
 
-                try {
-                    URL url = new URL(productUrl);
+                return "";
 
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                    httpURLConnection.setRequestMethod("POST");
-                    httpURLConnection.setDoInput(true);
-                    httpURLConnection.setDoOutput(true);
-
-                    InputStream inputStream = httpURLConnection.getInputStream();
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String result = "", line = "";
-                    while ((line = bufferedReader.readLine()) != null) {
-                        result += line;
-                    }
-                    return result;
-                } catch (Exception e) {
-                    return e.toString();
-                }
             }
 
             @Override
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
-                AlertDialog.Builder builder = new AlertDialog.Builder(Category_wise_products.this);
-                builder.setTitle("Received Message");
 
-                try {
+                StringRequest request = new StringRequest(Request.Method.POST,
+                        GET_PRODUCT_BY_CATEGORY_URL, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
 
-                    JSONArray productArray = new JSONArray(s);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(Category_wise_products.this);
+                        builder.setTitle("Received Message");
 
-                    String[] product_ids = new String[productArray.length()];
-                    String[] product_names = new String[productArray.length()];
-                    String[] product_descs = new String[productArray.length()];
-                    String[] product_imgs = new String[productArray.length()];
-                    String[] product_prices = new String[productArray.length()];
-                    String[] product_brands = new String[productArray.length()];
-                    String[] product_sps = new String[productArray.length()];
-                    String[] product_dps = new String[productArray.length()];
+                        try {
 
+                            JSONArray productArray = new JSONArray(response);
 
-                    JSONObject json_data = new JSONObject();
-                    for (int i = 0; i < productArray.length(); i++) {
-                        json_data = productArray.getJSONObject(i);
-                        product_ids[i] = json_data.getString("id");
-                        product_names[i] = json_data.getString("name");
-                        product_descs[i] = json_data.getString("description");
-                        product_imgs[i] = json_data.getString("image");
-                        product_prices[i] = json_data.getString("mrp") + " /-";
-                        product_brands[i] = json_data.getString("brand");
-                        product_sps[i] = "\u20B9" + json_data.getString("selling_price") + " /-";
-                        double p_mrp = Double.parseDouble(json_data.getString("mrp"));
-                        double p_sp = Double.parseDouble(json_data.getString("selling_price"));
-                        double p_dp = (p_mrp - p_sp) / (p_mrp / 100);
-                        int p_dp_i = (int) p_dp;
-                        product_dps[i] = String.valueOf(p_dp_i);
+                            String[] product_ids = new String[productArray.length()];
+                            String[] product_names = new String[productArray.length()];
+                            String[] product_descs = new String[productArray.length()];
+                            String[] product_imgs = new String[productArray.length()];
+                            String[] product_prices = new String[productArray.length()];
+                            String[] product_brands = new String[productArray.length()];
+                            String[] product_sps = new String[productArray.length()];
+                            String[] product_dps = new String[productArray.length()];
 
 
-                    }
+                            JSONObject json_data = new JSONObject();
+                            for (int i = 0; i < productArray.length(); i++) {
+                                json_data = productArray.getJSONObject(i);
+                                product_ids[i] = json_data.getString("product_id");
+                                product_names[i] = json_data.getString("product_name");
+                                product_descs[i] = json_data.getString("product_description").replace("<p>", "");
+                                product_imgs[i] = json_data.getString("product_image");
+                                product_prices[i] = json_data.getString("product_regular_price") + " /-";
+                                product_brands[i] = json_data.getString("product_short_description").replace("<p>", "");
+                                product_sps[i] = json_data.getString("product_price") + " /-";
+                                double p_mrp = Double.parseDouble(json_data.getString("product_regular_price"));
+                                double p_sp = Double.parseDouble(json_data.getString("product_price"));
+                                double p_dp = (p_mrp - p_sp) / (p_mrp / 100);
+                                int p_dp_i = (int) p_dp;
+                                product_dps[i] = String.valueOf(p_dp_i);
 
-                    mProgressBar.setVisibility(View.GONE);
-                    if (productArray.length() == 0) {
 
-                        cl.setVisibility(View.VISIBLE);
-                    } else {
-                        ll.setVisibility(View.VISIBLE);
-                        RecyclerView product_recyclerview = findViewById(R.id.recyclerview_products);
-                        product_recyclerview.setNestedScrollingEnabled(false);
-                        product_recyclerview.setLayoutManager(new LinearLayoutManager(Category_wise_products.this));
-                        product_recyclerview.setAdapter(new Recent_Products_Adapter(product_ids, product_names, product_descs, product_imgs, product_prices, product_brands, product_sps, product_dps, Category_wise_products.this));
+                            }
 
-                    }
-                } catch (JSONException e) {
-                    builder.setCancelable(true);
-                    builder.setTitle("No Internet Connection");
+                            mProgressBar.setVisibility(View.GONE);
+                            if (productArray.length() == 0) {
+
+                                cl.setVisibility(View.VISIBLE);
+                            } else {
+                                ll.setVisibility(View.VISIBLE);
+                                RecyclerView product_recyclerview = findViewById(R.id.recyclerview_products);
+                                product_recyclerview.setNestedScrollingEnabled(false);
+                                product_recyclerview.setLayoutManager(new LinearLayoutManager(Category_wise_products.this));
+                                product_recyclerview.setAdapter(new Recent_Products_Adapter(product_ids, product_names, product_descs, product_imgs, product_prices, product_brands, product_sps, product_dps, Category_wise_products.this));
+
+                            }
+                        } catch (JSONException e) {
+                            builder.setCancelable(true);
+                            builder.setTitle("No Internet Connection");
 //                    builder.setMessage(s);
-                    builder.setMessage("Please Connect to internet");
-                    builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
+                            builder.setMessage("Please Connect to internet");
+                            builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
 
+                                }
+                            });
+                            builder.show();
                         }
-                    });
-                    builder.show();
-                }
+
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }){
+                    @Override
+                    protected Map<String,String> getParams(){
+                        Map<String,String> params = new HashMap<>();
+                        params.put("slug", sub_category);
+
+                        return params;
+                    }
+
+                };
+
+                Volley.newRequestQueue(Category_wise_products.this).add(request);
+
+                request.setRetryPolicy(new DefaultRetryPolicy(
+                        100000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+//                AlertDialog.Builder builder = new AlertDialog.Builder(Category_wise_products.this);
+//                builder.setTitle("Received Message");
+
+//                try {
+//
+//                    JSONArray productArray = new JSONArray(s);
+//
+//                    String[] product_ids = new String[productArray.length()];
+//                    String[] product_names = new String[productArray.length()];
+//                    String[] product_descs = new String[productArray.length()];
+//                    String[] product_imgs = new String[productArray.length()];
+//                    String[] product_prices = new String[productArray.length()];
+//                    String[] product_brands = new String[productArray.length()];
+//                    String[] product_sps = new String[productArray.length()];
+//                    String[] product_dps = new String[productArray.length()];
+//
+//
+//                    JSONObject json_data = new JSONObject();
+//                    for (int i = 0; i < productArray.length(); i++) {
+//                        json_data = productArray.getJSONObject(i);
+//                        product_ids[i] = json_data.getString("id");
+//                        product_names[i] = json_data.getString("name");
+//                        product_descs[i] = json_data.getString("description");
+//                        product_imgs[i] = json_data.getString("image");
+//                        product_prices[i] = json_data.getString("mrp") + " /-";
+//                        product_brands[i] = json_data.getString("brand");
+//                        product_sps[i] = "\u20B9" + json_data.getString("selling_price") + " /-";
+//                        double p_mrp = Double.parseDouble(json_data.getString("mrp"));
+//                        double p_sp = Double.parseDouble(json_data.getString("selling_price"));
+//                        double p_dp = (p_mrp - p_sp) / (p_mrp / 100);
+//                        int p_dp_i = (int) p_dp;
+//                        product_dps[i] = String.valueOf(p_dp_i);
+//
+//
+//                    }
+//
+//                    mProgressBar.setVisibility(View.GONE);
+//                    if (productArray.length() == 0) {
+//
+//                        cl.setVisibility(View.VISIBLE);
+//                    } else {
+//                        ll.setVisibility(View.VISIBLE);
+//                        RecyclerView product_recyclerview = findViewById(R.id.recyclerview_products);
+//                        product_recyclerview.setNestedScrollingEnabled(false);
+//                        product_recyclerview.setLayoutManager(new LinearLayoutManager(Category_wise_products.this));
+//                        product_recyclerview.setAdapter(new Recent_Products_Adapter(product_ids, product_names, product_descs, product_imgs, product_prices, product_brands, product_sps, product_dps, Category_wise_products.this));
+//
+//                    }
+//                } catch (JSONException e) {
+//                    builder.setCancelable(true);
+//                    builder.setTitle("No Internet Connection");
+////                    builder.setMessage(s);
+//                    builder.setMessage("Please Connect to internet");
+//                    builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//
+//                        }
+//                    });
+//                    builder.show();
+//                }
 
             }
 
