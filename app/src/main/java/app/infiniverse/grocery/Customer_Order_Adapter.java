@@ -53,15 +53,16 @@ public class Customer_Order_Adapter extends RecyclerView.Adapter<Customer_Order_
         String order_dt = order_dts[position];
 
         holder.tvOrderId.setText(order_id);
-        holder.tvOrderSaving.setText("\u20B9"+order_saving);
-        holder.tvOrderPayableAmt.setText("\u20B9"+order_payableamt);
-        holder.tvOrderStatus.setText(order_statu);
-        holder.tvOrderDate.setText(order_dt.substring(8,10)+"/"+order_dt.substring(5,7)+"/"+order_dt.substring(0,4));
-        holder.tvOrderTime.setText(order_dt.substring(11));
+        holder.tvOrderSaving.setText(order_saving);
+        holder.tvOrderPayableAmt.setText("Ksh "+ order_payableamt);
+        holder.tvOrderStatus.setText(order_statu.toUpperCase());
+        holder.tvOrderDate.setText(order_dt.substring(8,10) + "/" + order_dt.substring(5,7) + "/" + order_dt.substring(0,4));
+        holder.tvOrderTime.setText(order_dt.substring(11, 16) + " Hrs");
 
-        if(order_statu.trim().equals("PENDING")){
+        if(order_statu.trim().equals("pending")){
             holder.tvOrderStatus.setTextColor(context.getResources().getColor(R.color.holo_red_light));
-        }else if(order_statu.trim().equals("DELIVERED")){
+
+        }else if(order_statu.trim().equals("completed")){
             holder.tvOrderStatus.setTextColor(context.getResources().getColor(R.color.holo_green_light));
         }
     }
@@ -94,15 +95,15 @@ public class Customer_Order_Adapter extends RecyclerView.Adapter<Customer_Order_
 
             card = itemView.findViewById(R.id.order_history_cart);
 
-            card.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    Intent i = new Intent(context,OrderDetailsActivity.class);
-                    i.putExtra("order_id",tvOrderId.getText().toString());
-                    context.startActivity(i);
-                }
-            });
+//            card.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//
+//                    Intent i = new Intent(context,OrderDetailsActivity.class);
+//                    i.putExtra("order_id",tvOrderId.getText().toString());
+//                    context.startActivity(i);
+//                }
+//            });
 
         }
 

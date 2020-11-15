@@ -295,7 +295,8 @@ public class CheckoutActivity extends AppCompatActivity {
                     //delete cart item from firebase
                     mDatabaseCartItems.child(userId).removeValue();
                     //push to firebase
-                    mDatabase.child(userId).child("order_history_ids").setValue(orderId);
+
+                    mDatabase.child(userId).child("order_history_ids").push().setValue(orderId);
 
                     dialog.dismiss();
 
