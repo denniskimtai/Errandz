@@ -63,7 +63,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private String[] product_ids;
     private String[] product_qtys;
 
-    private DatabaseReference mDatabase;
+    private DatabaseReference mDatabase, mDatabaseCartItems;
     private FirebaseAuth firebaseAuth;
     private String userId;
 
@@ -158,6 +158,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 //realtime firebase database
                 mDatabase = FirebaseDatabase.getInstance().getReference("Order Ids");
                 firebaseAuth = FirebaseAuth.getInstance();
+                mDatabaseCartItems = FirebaseDatabase.getInstance().getReference("Cart Items");
 
                 userId = firebaseAuth.getUid();
 
@@ -292,7 +293,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
                     //all orders are sent
                     //delete cart item from firebase
-                    mDatabase.child(userId).child(product_ids[x - 1]).removeValue();
+                    mDatabaseCartItems.child(userId).removeValue();
                     //push to firebase
                     mDatabase.child(userId).child("order_history_ids").setValue(orderId);
 
