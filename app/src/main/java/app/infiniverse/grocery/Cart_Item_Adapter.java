@@ -12,7 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
@@ -47,6 +51,13 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
     private TextView total_saving;
     private TextView total_pamt;
 
+    private String id;
+
+    private DatabaseReference mDatabase;
+    private FirebaseAuth firebaseAuth;
+    private String userId;
+
+
     public Cart_Item_Adapter(String[] product_id, String[] product_name, String[] product_desc, String[] product_img, String[] product_price, String[] product_brand, String[] product_sp, String[] product_dp, String[] product_qty,TextView total_saving,TextView total_pamt, Context context) {
         this.product_id = product_id;
         this.product_name = product_name;
@@ -72,10 +83,11 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
 
     @Override
     public void onBindViewHolder(ProductsViewHolder holder, int position) {
-        String id = product_id[position];
+
+        id = product_id[position];
         String name = product_name[position];
         String desc = product_desc[position];
-        String img = context.getResources().getString(R.string.img_base_url) + "product_images/" + product_img[position];
+        String img = product_img[position];
         String price = product_price[position];
         String selling_price = product_sp[position];
         String brand = product_brand[position];
@@ -97,8 +109,6 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
         if(selling_price.trim().equals(price.trim())){
             holder.pro_price.setVisibility(View.GONE);
         }
-
-
 
         Picasso.with(context).load(img).placeholder(R.drawable.watermark_icon).into(holder.pro_img);
 
@@ -140,6 +150,12 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
             add = itemView.findViewById(R.id.add);
             remove = itemView.findViewById(R.id.remove);
 
+            //realtime firebase database
+            mDatabase = FirebaseDatabase.getInstance().getReference("Cart Items");
+            firebaseAuth = FirebaseAuth.getInstance();
+
+            userId = firebaseAuth.getUid();
+
             strikeThroughText(pro_price);
 
             pro_img.setOnClickListener(new View.OnClickListener() {
@@ -162,6 +178,7 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
                 @Override
                 public void onClick(View v) {
 
+
                     class IncreaseProductQuantity extends AsyncTask<String, Void, String> {
 
                         @Override
@@ -181,49 +198,55 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
                             qtyi++;
                             pro_qty.setText(Integer.toString(qtyi));
 
-                            double gsp=Double.parseDouble(pro_sp.getText().toString().substring(2).trim());
-                            double gmrp=Double.parseDouble(pro_price.getText().toString().substring(2).trim());
+                            double gsp=Double.parseDouble(pro_sp.getText().toString().replace("Ksh ","").replace(" /-",""));
+                            double gmrp=Double.parseDouble(pro_price.getText().toString().replace("Ksh ","").replace(" /-",""));
 
                             double profit=gmrp-gsp;
 
-                            double old_samt=Double.parseDouble(total_saving.getText().toString().substring(1).trim());
+                            double old_samt=Double.parseDouble(total_saving.getText().toString().replace("Ksh ",""));
                             double new_samt=old_samt+profit;
-                            total_saving.setText("\u20B9"+new_samt);
+                            total_saving.setText("Ksh "+new_samt);
 
-                            double old_pamt=Double.parseDouble(total_pamt.getText().toString().substring(1).trim());
+                            double old_pamt=Double.parseDouble(total_pamt.getText().toString().replace("Ksh ",""));
                             double new_pamt=old_pamt+gsp;
-                            total_pamt.setText("\u20B9"+new_pamt);
+                            total_pamt.setText("Ksh "+new_pamt);
+
+                            //update firebase quantity
+                            mDatabase.child(userId).child(id).child("product_quantity").setValue(qtyi++);
+
                         }
 
                         @Override
                         protected String doInBackground(String... params) {
 
-                            String urls = context.getResources().getString(R.string.base_url).concat("increaseProductQuantity/");
-                            try {
-                                URL url = new URL(urls);
-                                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                                httpURLConnection.setRequestMethod("POST");
-                                httpURLConnection.setDoInput(true);
-                                httpURLConnection.setDoOutput(true);
-                                OutputStream outputStream = httpURLConnection.getOutputStream();
-                                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                                String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8") + "&" +
-                                        URLEncoder.encode("product_id", "UTF-8") + "=" + URLEncoder.encode(params[1], "UTF-8");
+//                            String urls = context.getResources().getString(R.string.base_url).concat("increaseProductQuantity/");
+//                            try {
+//                                URL url = new URL(urls);
+//                                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+//                                httpURLConnection.setRequestMethod("POST");
+//                                httpURLConnection.setDoInput(true);
+//                                httpURLConnection.setDoOutput(true);
+//                                OutputStream outputStream = httpURLConnection.getOutputStream();
+//                                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+//                                String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8") + "&" +
+//                                        URLEncoder.encode("product_id", "UTF-8") + "=" + URLEncoder.encode(params[1], "UTF-8");
+//
+//                                bufferedWriter.write(post_Data);
+//                                bufferedWriter.flush();
+//                                bufferedWriter.close();
+//                                outputStream.close();
+//                                InputStream inputStream = httpURLConnection.getInputStream();
+//                                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+//                                String result = "", line = "";
+//                                while ((line = bufferedReader.readLine()) != null) {
+//                                    result += line;
+//                                }
+//                                return result;
+//                            } catch (Exception e) {
+//                                return e.toString();
+//                            }
 
-                                bufferedWriter.write(post_Data);
-                                bufferedWriter.flush();
-                                bufferedWriter.close();
-                                outputStream.close();
-                                InputStream inputStream = httpURLConnection.getInputStream();
-                                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                                String result = "", line = "";
-                                while ((line = bufferedReader.readLine()) != null) {
-                                    result += line;
-                                }
-                                return result;
-                            } catch (Exception e) {
-                                return e.toString();
-                            }
+                            return "";
                         }
                     }
 
@@ -239,78 +262,78 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
                 @Override
                 public void onClick(View v) {
 
-                    int qtyi = Integer.parseInt(pro_qty.getText().toString());
+                    class DecreaseProductQuantity extends AsyncTask<String, Void, String> {
 
-                    if (qtyi != 1) {
-
-                        class DecreaseProductQuantity extends AsyncTask<String, Void, String> {
-
-                            @Override
-                            protected void onPreExecute() {
-                                super.onPreExecute();
-                            }
-
-                            @Override
-                            protected void onPostExecute(String s) {
-                                int qtyi = Integer.parseInt(pro_qty.getText().toString());
-                                if (qtyi != 1) {
-                                    qtyi--;
-                                    pro_qty.setText(Integer.toString(qtyi));
-                                }
-
-                                double gsp=Double.parseDouble(pro_sp.getText().toString().substring(2).trim());
-                                double gmrp=Double.parseDouble(pro_price.getText().toString().substring(2).trim());
-
-                                double profit=gmrp-gsp;
-
-                                double old_samt=Double.parseDouble(total_saving.getText().toString().substring(1).trim());
-                                double new_samt=old_samt-profit;
-                                total_saving.setText("\u20B9"+new_samt);
-
-                                double old_pamt=Double.parseDouble(total_pamt.getText().toString().substring(1).trim());
-                                double new_pamt=old_pamt-gsp;
-                                total_pamt.setText("\u20B9"+new_pamt);
-
-                            }
-
-                            @Override
-                            protected String doInBackground(String... params) {
-
-                                String urls = context.getResources().getString(R.string.base_url).concat("decreaseProductQuantity/");
-                                try {
-                                    URL url = new URL(urls);
-                                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                                    httpURLConnection.setRequestMethod("POST");
-                                    httpURLConnection.setDoInput(true);
-                                    httpURLConnection.setDoOutput(true);
-                                    OutputStream outputStream = httpURLConnection.getOutputStream();
-                                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                                    String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8") + "&" +
-                                            URLEncoder.encode("product_id", "UTF-8") + "=" + URLEncoder.encode(params[1], "UTF-8");
-
-                                    bufferedWriter.write(post_Data);
-                                    bufferedWriter.flush();
-                                    bufferedWriter.close();
-                                    outputStream.close();
-                                    InputStream inputStream = httpURLConnection.getInputStream();
-                                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                                    String result = "", line = "";
-                                    while ((line = bufferedReader.readLine()) != null) {
-                                        result += line;
-                                    }
-                                    return result;
-                                } catch (Exception e) {
-                                    return e.toString();
-                                }
-                            }
+                        @Override
+                        protected void onPreExecute() {
+                            super.onPreExecute();
                         }
 
-                        //creating asynctask object and executing it
-                        DecreaseProductQuantity dpqOBJ = new DecreaseProductQuantity();
-                        dpqOBJ.execute(sp.getString("loginid", null), pro_id.getText().toString());
+                        @Override
+                        protected void onPostExecute(String s) {
+                            int qtyi = Integer.parseInt(pro_qty.getText().toString());
+                            if (qtyi != 1) {
+                                qtyi--;
+                                pro_qty.setText(Integer.toString(qtyi));
+                            }
+
+                            double gsp = Double.parseDouble(pro_sp.getText().toString().replace("Ksh ", "").replace(" /-", ""));
+                            double gmrp = Double.parseDouble(pro_price.getText().toString().replace("Ksh ", "").replace(" /-", ""));
+
+                            double profit = gmrp - gsp;
+
+                            double old_samt = Double.parseDouble(total_saving.getText().toString().replace("Ksh ", ""));
+                            double new_samt = old_samt - profit;
+                            total_saving.setText("Ksh " + new_samt);
+
+                            double old_pamt = Double.parseDouble(total_pamt.getText().toString().replace("Ksh ", ""));
+                            double new_pamt = old_pamt - gsp;
+                            total_pamt.setText("Ksh " + new_pamt);
+
+                            //update firebase quantity
+                            mDatabase.child(userId).child(id).child("product_quantity").setValue(qtyi);
+
+
+                        }
+
+                        @Override
+                        protected String doInBackground(String... params) {
+
+//                            String urls = context.getResources().getString(R.string.base_url).concat("decreaseProductQuantity/");
+//                            try {
+//                                URL url = new URL(urls);
+//                                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+//                                httpURLConnection.setRequestMethod("POST");
+//                                httpURLConnection.setDoInput(true);
+//                                httpURLConnection.setDoOutput(true);
+//                                OutputStream outputStream = httpURLConnection.getOutputStream();
+//                                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+//                                String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8") + "&" +
+//                                        URLEncoder.encode("product_id", "UTF-8") + "=" + URLEncoder.encode(params[1], "UTF-8");
+//
+//                                bufferedWriter.write(post_Data);
+//                                bufferedWriter.flush();
+//                                bufferedWriter.close();
+//                                outputStream.close();
+//                                InputStream inputStream = httpURLConnection.getInputStream();
+//                                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+//                                String result = "", line = "";
+//                                while ((line = bufferedReader.readLine()) != null) {
+//                                    result += line;
+//                                }
+//                                return result;
+//                            } catch (Exception e) {
+//                                return e.toString();
+//                            }
+                            return "";
+                        }
                     }
 
+                    //creating asynctask object and executing it
+                    DecreaseProductQuantity dpqOBJ = new DecreaseProductQuantity();
+                    dpqOBJ.execute(sp.getString("loginid", null), pro_id.getText().toString());
                 }
+
             });
 
             pro_del.setOnClickListener(new View.OnClickListener() {
@@ -330,6 +353,8 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
                         protected void onPostExecute(String s) {
                             super.onPostExecute(s);
 
+                            mDatabase.child(userId).child(id).removeValue();
+
                             Intent intent = ((Activity) context).getIntent();
                             ((Activity) context).finish();
                             context.startActivity(intent);
@@ -339,32 +364,33 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
                         @Override
                         protected String doInBackground(String... params) {
 
-                            String urls = context.getResources().getString(R.string.base_url).concat("deleteCartItem/");
-                            try {
-                                URL url = new URL(urls);
-                                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                                httpURLConnection.setRequestMethod("POST");
-                                httpURLConnection.setDoInput(true);
-                                httpURLConnection.setDoOutput(true);
-                                OutputStream outputStream = httpURLConnection.getOutputStream();
-                                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                                String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8") + "&" +
-                                        URLEncoder.encode("product_id", "UTF-8") + "=" + URLEncoder.encode(params[1], "UTF-8");
-
-                                bufferedWriter.write(post_Data);
-                                bufferedWriter.flush();
-                                bufferedWriter.close();
-                                outputStream.close();
-                                InputStream inputStream = httpURLConnection.getInputStream();
-                                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                                String result = "", line = "";
-                                while ((line = bufferedReader.readLine()) != null) {
-                                    result += line;
-                                }
-                                return result;
-                            } catch (Exception e) {
-                                return e.toString();
-                            }
+//                            String urls = context.getResources().getString(R.string.base_url).concat("deleteCartItem/");
+//                            try {
+//                                URL url = new URL(urls);
+//                                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+//                                httpURLConnection.setRequestMethod("POST");
+//                                httpURLConnection.setDoInput(true);
+//                                httpURLConnection.setDoOutput(true);
+//                                OutputStream outputStream = httpURLConnection.getOutputStream();
+//                                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+//                                String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8") + "&" +
+//                                        URLEncoder.encode("product_id", "UTF-8") + "=" + URLEncoder.encode(params[1], "UTF-8");
+//
+//                                bufferedWriter.write(post_Data);
+//                                bufferedWriter.flush();
+//                                bufferedWriter.close();
+//                                outputStream.close();
+//                                InputStream inputStream = httpURLConnection.getInputStream();
+//                                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+//                                String result = "", line = "";
+//                                while ((line = bufferedReader.readLine()) != null) {
+//                                    result += line;
+//                                }
+//                                return result;
+//                            } catch (Exception e) {
+//                                return e.toString();
+//                            }
+                            return "";
                         }
                     }
 
@@ -382,7 +408,6 @@ public class Cart_Item_Adapter extends RecyclerView.Adapter<Cart_Item_Adapter.Pr
         private void strikeThroughText(TextView price) {
             price.setPaintFlags(price.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
         }
-
 
     }
 

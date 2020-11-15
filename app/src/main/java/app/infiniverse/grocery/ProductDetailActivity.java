@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
@@ -16,6 +17,12 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -27,6 +34,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProductDetailActivity extends AppCompatActivity {
 
@@ -39,8 +48,12 @@ public class ProductDetailActivity extends AppCompatActivity {
     private ProgressBar mProgressBar;
     AddToCart addToCart;
 
+    private DatabaseReference mDatabase;
+    private FirebaseAuth firebaseAuth;
+
     private String string_product_id, product_name, product_description, product_price, product_selling_price, product_short_description, product_discount, product_image_url;
 
+    private String userId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +68,13 @@ public class ProductDetailActivity extends AppCompatActivity {
         product_short_description = getIntent().getStringExtra("product_short_description");
         product_discount = getIntent().getStringExtra("product_discount");
         product_image_url = getIntent().getStringExtra("product_image");
+
+        //realtime firebase database
+        mDatabase = FirebaseDatabase.getInstance().getReference("Cart Items");
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        userId = firebaseAuth.getUid();
+
 
         view = findViewById(R.id.product_page);
         mProgressBar = findViewById(R.id.progressBar);
@@ -89,7 +109,51 @@ public class ProductDetailActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String loginid = sp.getString("loginid", null);
                 if (loginid != null) {
-                    addToCart.addToCart(product_id.getText().toString(),"1");
+                    //addToCart.addToCart(string_product_id,"1");
+
+                    //create cart object
+                    final CartItems cartItems = new CartItems(string_product_id, product_name, product_description, product_price.replace("Ksh ",""), product_selling_price.replace("Ksh ",""),
+                            product_short_description, product_discount, product_image_url, "1");
+
+                    //check if product is in cart
+
+                    DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("Cart Items");
+                    postRef.child(userId).child(string_product_id).addListenerForSingleValueEvent(new ValueEventListener(){
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot){
+
+                            if(dataSnapshot.child("product_id").exists() && dataSnapshot.child("product_id").getValue().toString().equals(string_product_id)) {
+
+                                //product is in cart
+                                Toast.makeText(ProductDetailActivity.this, "Product is in your cart", Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(ProductDetailActivity.this, MyCart.class);
+                                intent.putExtra("userId", userId);
+                                finish();
+                                startActivity(intent);
+
+                            }else {
+
+                                //push to firebase
+                                mDatabase.child(userId).child(string_product_id).setValue(cartItems);
+
+                                Toast.makeText(ProductDetailActivity.this, "Product added to cart", Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(ProductDetailActivity.this, MyCart.class);
+                                intent.putExtra("userId", userId);
+                                finish();
+                                startActivity(intent);
+                            }
+
+                        }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+
+
+
                 } else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(ProductDetailActivity.this);
                     builder.setTitle("Heyy..")
@@ -99,6 +163,7 @@ public class ProductDetailActivity extends AppCompatActivity {
                                 public void onClick(DialogInterface dialog, int which) {
                                     Intent intent=new Intent(ProductDetailActivity.this,LoginActivity.class);
                                     startActivity(intent);
+
                                 }
                             })
                             .setNegativeButton("No Just Continue ", new DialogInterface.OnClickListener() {

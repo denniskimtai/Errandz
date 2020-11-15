@@ -43,7 +43,7 @@ public class OrderActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.mytoolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Order History");
+        getSupportActionBar().setTitle("");
         mProgressBar = findViewById(R.id.progressBar);
 
 

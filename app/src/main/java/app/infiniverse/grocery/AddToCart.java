@@ -56,33 +56,34 @@ public class AddToCart {
                 @Override
                 protected String doInBackground(String... params) {
 
-                    String urls = context.getResources().getString(R.string.base_url).concat("addToCart/");
-                    try {
-                        URL url = new URL(urls);
-                        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                        httpURLConnection.setRequestMethod("POST");
-                        httpURLConnection.setDoInput(true);
-                        httpURLConnection.setDoOutput(true);
-                        OutputStream outputStream = httpURLConnection.getOutputStream();
-                        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                        String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8") + "&" +
-                                URLEncoder.encode("product_id", "UTF-8") + "=" + URLEncoder.encode(params[1], "UTF-8") + "&" +
-                                URLEncoder.encode("qty", "UTF-8") + "=" + URLEncoder.encode(params[2], "UTF-8");
-
-                        bufferedWriter.write(post_Data);
-                        bufferedWriter.flush();
-                        bufferedWriter.close();
-                        outputStream.close();
-                        InputStream inputStream = httpURLConnection.getInputStream();
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                        String result = "", line = "";
-                        while ((line = bufferedReader.readLine()) != null) {
-                            result += line;
-                        }
-                        return result;
-                    } catch (Exception e) {
-                        return e.toString();
-                    }
+//                    String urls = context.getResources().getString(R.string.base_url).concat("addToCart/");
+//                    try {
+//                        URL url = new URL(urls);
+//                        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+//                        httpURLConnection.setRequestMethod("POST");
+//                        httpURLConnection.setDoInput(true);
+//                        httpURLConnection.setDoOutput(true);
+//                        OutputStream outputStream = httpURLConnection.getOutputStream();
+//                        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+//                        String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8") + "&" +
+//                                URLEncoder.encode("product_id", "UTF-8") + "=" + URLEncoder.encode(params[1], "UTF-8") + "&" +
+//                                URLEncoder.encode("qty", "UTF-8") + "=" + URLEncoder.encode(params[2], "UTF-8");
+//
+//                        bufferedWriter.write(post_Data);
+//                        bufferedWriter.flush();
+//                        bufferedWriter.close();
+//                        outputStream.close();
+//                        InputStream inputStream = httpURLConnection.getInputStream();
+//                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+//                        String result = "", line = "";
+//                        while ((line = bufferedReader.readLine()) != null) {
+//                            result += line;
+//                        }
+//                        return result;
+//                    } catch (Exception e) {
+//                        return e.toString();
+//                    }
+                    return null;
                 }
             }
 

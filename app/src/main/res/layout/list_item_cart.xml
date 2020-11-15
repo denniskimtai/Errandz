@@ -13,12 +13,13 @@
         android:layout_width="match_parent"
         android:layout_height="85dp"
         android:orientation="horizontal"
+        android:weightSum="10"
         android:padding="5dp">
 
         <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="4">
+            android:layout_weight="3">
 
             <ImageView
                 android:id="@+id/product_img"
@@ -104,8 +105,8 @@
                 android:layout_gravity="end"
                 android:layout_toRightOf="@+id/product_price"
                 android:background="#fff"
-                android:layout_marginLeft="50dp"
-                android:gravity="end"
+                android:layout_marginLeft="30dp"
+                android:gravity="center_horizontal"
                 android:orientation="horizontal">
 
 
@@ -132,7 +133,7 @@
                         android:inputType="number"
                         android:text="1"
                         android:textColor="@color/blue_grey"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
 
                     <ImageView
                         android:id="@+id/remove"

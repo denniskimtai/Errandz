@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -39,6 +40,11 @@ import com.daimajia.slider.library.SliderTypes.DefaultSliderView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.auth.OAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.mikepenz.itemanimators.AlphaCrossFadeAnimator;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -101,6 +107,7 @@ public class HomeActivity extends AppCompatActivity
     private AccountHeader headerResult = null;
 
     private FirebaseAuth firebaseAuth;
+    private DatabaseReference mDatabase;
 
     private AlertDialog.Builder builder;
 
@@ -118,6 +125,8 @@ public class HomeActivity extends AppCompatActivity
         mProgressBar =findViewById(R.id.progressBar);
 
         firebaseAuth = FirebaseAuth.getInstance();
+        //realtime firebase database
+        mDatabase = FirebaseDatabase.getInstance().getReference("Cart Items");
 
         builder = new AlertDialog.Builder(this);
 
@@ -208,8 +217,6 @@ public class HomeActivity extends AppCompatActivity
         new DrawerBuilder().withActivity(this).build();
 
 
-
-
         result = new DrawerBuilder()
                 .withActivity(this)
                 .withToolbar(toolbar)
@@ -280,7 +287,6 @@ public class HomeActivity extends AppCompatActivity
         }
 
 
-
         result.addItem(new DividerDrawerItem());
         result.addItem(new SecondaryDrawerItem().withName("Shop By Category").withTag("CATEGORY_LABEL").withSelectable(false).withSetSelected(false).withTextColor(getResources().getColor(R.color.material)));
         result.addItem(new DividerDrawerItem());
@@ -338,8 +344,8 @@ public class HomeActivity extends AppCompatActivity
 //                    Toast.makeText(HomeActivity.this, ""+json_data.length(), Toast.LENGTH_SHORT).show();
                 } catch (JSONException e) {
                     builder.setCancelable(true);
-                    builder.setTitle("No Internet Connection");
-//                    builder.setMessage(e.toString());
+                    builder.setTitle("No Internet Connection1");
+                    builder.setMessage(e.toString());
                     builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
@@ -402,7 +408,7 @@ public class HomeActivity extends AppCompatActivity
                     }
 
                 } catch (Exception e) {
-                    Toast.makeText(HomeActivity.this, "No Internet Connection", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(HomeActivity.this, "No Internet Connection2", Toast.LENGTH_SHORT).show();
                 }
 //                Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
             }
@@ -791,7 +797,7 @@ public class HomeActivity extends AppCompatActivity
                 mProgressBar.setVisibility(View.GONE);
 
             } catch (Exception e) {
-                Toast.makeText(HomeActivity.this, "No Internet Connection", Toast.LENGTH_SHORT).show();
+                Toast.makeText(HomeActivity.this, "No Internet Connection3", Toast.LENGTH_SHORT).show();
             }
 //                Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
         }
@@ -876,38 +882,65 @@ public class HomeActivity extends AppCompatActivity
                 @Override
                 protected void onPostExecute(String s) {
                     super.onPostExecute(s);
-                    cart_count = Integer.parseInt(s);
-                    menuItem.setIcon(Converter.convertLayoutToImage(HomeActivity.this,cart_count,R.drawable.ic_shopping_cart_white));
+
+                    //get cart items from firebase
+                    mDatabase.child(firebaseAuth.getUid()).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                            if (dataSnapshot.exists()){
+
+                                cart_count = (int) dataSnapshot.getChildrenCount();
+                                menuItem.setIcon(Converter.convertLayoutToImage(HomeActivity.this,cart_count,R.drawable.ic_shopping_cart_white));
+
+                            }else{
+
+                                cart_count = 0;
+                                menuItem.setIcon(Converter.convertLayoutToImage(HomeActivity.this,cart_count,R.drawable.ic_shopping_cart_white));
+
+                            }
+
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
                 }
 
                 @Override
                 protected String doInBackground(String... params) {
 
-                    String urls = getResources().getString(R.string.base_url).concat("getItemCount/");
-                    try {
-                        URL url = new URL(urls);
-                        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                        httpURLConnection.setRequestMethod("POST");
-                        httpURLConnection.setDoInput(true);
-                        httpURLConnection.setDoOutput(true);
-                        OutputStream outputStream = httpURLConnection.getOutputStream();
-                        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                        String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8");
+//                    String urls = getResources().getString(R.string.base_url).concat("getItemCount/");
+//                    try {
+//                        URL url = new URL(urls);
+//                        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+//                        httpURLConnection.setRequestMethod("POST");
+//                        httpURLConnection.setDoInput(true);
+//                        httpURLConnection.setDoOutput(true);
+//                        OutputStream outputStream = httpURLConnection.getOutputStream();
+//                        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+//                        String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8");
+//
+//                        bufferedWriter.write(post_Data);
+//                        bufferedWriter.flush();
+//                        bufferedWriter.close();
+//                        outputStream.close();
+//                        InputStream inputStream = httpURLConnection.getInputStream();
+//                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+//                        String result = "", line = "";
+//                        while ((line = bufferedReader.readLine()) != null) {
+//                            result += line;
+//                        }
+//                        return result;
+//                    } catch (Exception e) {
+//                        return e.toString();
+//                    }
 
-                        bufferedWriter.write(post_Data);
-                        bufferedWriter.flush();
-                        bufferedWriter.close();
-                        outputStream.close();
-                        InputStream inputStream = httpURLConnection.getInputStream();
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                        String result = "", line = "";
-                        while ((line = bufferedReader.readLine()) != null) {
-                            result += line;
-                        }
-                        return result;
-                    } catch (Exception e) {
-                        return e.toString();
-                    }
+                    return "";
                 }
             }
 
@@ -932,10 +965,9 @@ public class HomeActivity extends AppCompatActivity
 
         if (id == R.id.cart) {
 
-
-
             if(sp.getString("loginid",null)!=null) {
                 Intent i = new Intent(this, MyCart.class);
+                i.putExtra("userId", firebaseAuth.getUid());
                 startActivity(i);
                 return true;
             }else{
