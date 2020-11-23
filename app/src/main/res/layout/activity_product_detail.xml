@@ -4,11 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#fff"
+    android:background="#f5f1f8"
     tools:context=".ProductDetailActivity">
 
     <ScrollView
-        android:background="#E3DFDF"
+        android:background="#f5f1f8"
         android:id="@+id/product_page"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,18 +20,19 @@
             android:orientation="vertical"
             android:layout_height="wrap_content">
 
+            <include layout="@layout/toolbar" />
+
             <android.support.v7.widget.CardView
+                app:cardElevation="0dp"
+                app:cardCornerRadius="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardElevation="5dp"
-                android:layout_marginBottom="5dp"
-                app:cardCornerRadius="5dp">
+                android:layout_marginBottom="5dp">
 
             <FrameLayout
                 android:id="@+id/productimage"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
-                android:elevation="4dp"
                 android:visibility="visible">
 
 
@@ -41,7 +42,7 @@
                     android:scaleType="fitXY"
                     android:layout_gravity="center"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/watermark_icon" />
+                    android:src="@drawable/favicon" />
 
 
             </FrameLayout>
@@ -52,7 +53,7 @@
             <android.support.v7.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardElevation="5dp"
+                app:cardElevation="0dp"
                 android:layout_marginBottom="5dp"
                 app:cardCornerRadius="5dp">
 
@@ -118,7 +119,7 @@
                     android:layout_marginTop="10dp"
                     android:singleLine="false"
                     android:text="Product Description Here"
-                    android:textColor="@color/blue_grey"
+                    android:textColor="@color/secondary_text_purple"
                     android:textSize="13sp" />
 
             </LinearLayout>
@@ -135,8 +136,8 @@
             <android.support.v7.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardElevation="5dp"
                 android:layout_marginBottom="5dp"
+                app:cardElevation="0dp"
                 app:cardCornerRadius="5dp">
 
             <LinearLayout
@@ -165,7 +166,7 @@
                     android:layout_marginBottom="16dp"
                     android:singleLine="false"
                     android:text="Product Description Here"
-                    android:textColor="@color/blue_grey"
+                    android:textColor="@color/secondary_text_purple"
                     android:textSize="13sp" />
 
             </LinearLayout>
@@ -189,7 +190,8 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/box51"
+                    android:background="@drawable/transparent_rectangle"
+                    android:backgroundTint="@color/green"
                     android:elevation="3dp"
                     android:padding="16dp"
                     android:gravity="center"
@@ -201,7 +203,8 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/box51"
+                    android:background="@drawable/transparent_rectangle"
+                    android:backgroundTint="#EF1505"
                     android:elevation="3dp"
                     android:gravity="center"
                     android:padding="16dp"

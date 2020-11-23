@@ -13,7 +13,7 @@
     <color name="black_trans80">#14000000</color>
     <color name="indicator_unselected">#6c000000</color>
     <color name="blue_grey">#455A64</color>
-    <color name="red">#F44336</color>
+    <color name="red">#E61001</color>
     <color name="pink">#E91E63</color>
     <color name="purple">#9C27B0</color>
     <color name="deep_purple">#673AB7</color>
@@ -33,6 +33,8 @@
     <color name="even">#FFFFFF</color>
     <color name="odd">#eeeeee</color>
     <color name="white">#ffffff</color>
+    <color name="secondary_text_purple">#380861</color>
+    <color name="app_background">#f5f1f8</color>
     <color name="fab">#ce2335</color>
     <color name="style_color_primary">#2d5d82</color>
     <color name="style_color_primary_dark">#21425d</color>

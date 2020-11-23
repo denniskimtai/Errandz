@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/app_background"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="app.infiniverse.grocery.HomeActivity"
     tools:showIn="@layout/activity_home">
@@ -58,6 +59,7 @@
                     custom:unselected_width="6dp" />
 
                 <LinearLayout
+                    android:gravity="center_horizontal"
                     android:id="@+id/delivery_text_box"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -66,18 +68,28 @@
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
                     android:background="@drawable/box2">
 
+                    <ImageView
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginLeft="10dp"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:src="@drawable/png_fast"/>
+
                     <TextView
+                        android:gravity="center_vertical"
                         android:id="@+id/delivery_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:autoSizeTextType="uniform"
-                        android:drawablePadding="5dp"
-                        android:drawableStart="@drawable/ic_bus"
                         android:maxLines="1"
                         android:padding="10dp"
-                        android:text="DELIVERIES DONE WITHIN 2-4 HOURS" />
+                        android:textSize="13sp"
+                        android:textColor="@color/red"
+                        android:text="EASY AND FAST DELIVERIES AVAILABLE" />
+                    
                 </LinearLayout>
 
 
@@ -98,14 +110,15 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:background="@color/white"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/nunito_sans"
                             android:gravity="center"
-                            android:paddingBottom="7dp"
+                            android:paddingBottom="10dp"
                             android:paddingTop="7dp"
                             android:text="Top Deals"
-                            android:textColor="@color/black"
+                            android:textColor="@color/secondary_text_purple"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
@@ -113,14 +126,14 @@
                             android:id="@+id/ll_best_selling"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:layout_marginTop="10dp"
-                            android:background="#d2d2d2"
+                            android:background="@color/app_background"
                             android:orientation="vertical"
                             android:visibility="gone">
 
                             <android.support.v7.widget.RecyclerView
                                 xmlns:android="http://schemas.android.com/apk/res/android"
                                 android:id="@+id/recyclerview_best_deals"
+                                android:background="@color/app_background"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content" />
                         </LinearLayout>

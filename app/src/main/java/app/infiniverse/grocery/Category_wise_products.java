@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,6 +28,12 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,6 +60,9 @@ public class Category_wise_products extends AppCompatActivity implements AddorRe
     int cart_count;
     private ProgressBar mProgressBar;
 
+    private FirebaseAuth firebaseAuth;
+    private DatabaseReference mDatabase;
+
     private final String GET_PRODUCT_BY_CATEGORY_URL = "http://errandz.xyz/woocommerce/get_product_by_category.php";
 
     @Override
@@ -71,6 +81,10 @@ public class Category_wise_products extends AppCompatActivity implements AddorRe
         ll = findViewById(R.id.ll_products);
 
         cl= findViewById(R.id.ll_empty);
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        //realtime firebase database
+        mDatabase = FirebaseDatabase.getInstance().getReference("Cart Items");
 
         Bundle bundle = getIntent().getExtras();
         final String sub_cat_id = bundle.getString("sub_cat_id");
@@ -306,38 +320,65 @@ public class Category_wise_products extends AppCompatActivity implements AddorRe
                 @Override
                 protected void onPostExecute(String s) {
                     super.onPostExecute(s);
-                    cart_count = Integer.parseInt(s);
-                    menuItem.setIcon(Converter.convertLayoutToImage(Category_wise_products.this, cart_count, R.drawable.ic_shopping_cart_white));
+
+                    //get cart items from firebase
+                    mDatabase.child(firebaseAuth.getUid()).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                            if (dataSnapshot.exists()){
+
+                                cart_count = (int) dataSnapshot.getChildrenCount();
+                                menuItem.setIcon(Converter.convertLayoutToImage(Category_wise_products.this,cart_count,R.drawable.ic_shopping_cart_white));
+
+                            }else{
+
+                                cart_count = 0;
+                                menuItem.setIcon(Converter.convertLayoutToImage(Category_wise_products.this,cart_count,R.drawable.ic_shopping_cart_white));
+
+                            }
+
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
                 }
 
                 @Override
                 protected String doInBackground(String... params) {
 
-                    String urls = getResources().getString(R.string.base_url).concat("getItemCount/");
-                    try {
-                        URL url = new URL(urls);
-                        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                        httpURLConnection.setRequestMethod("POST");
-                        httpURLConnection.setDoInput(true);
-                        httpURLConnection.setDoOutput(true);
-                        OutputStream outputStream = httpURLConnection.getOutputStream();
-                        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                        String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8");
+//                    String urls = getResources().getString(R.string.base_url).concat("getItemCount/");
+//                    try {
+//                        URL url = new URL(urls);
+//                        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+//                        httpURLConnection.setRequestMethod("POST");
+//                        httpURLConnection.setDoInput(true);
+//                        httpURLConnection.setDoOutput(true);
+//                        OutputStream outputStream = httpURLConnection.getOutputStream();
+//                        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+//                        String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8");
+//
+//                        bufferedWriter.write(post_Data);
+//                        bufferedWriter.flush();
+//                        bufferedWriter.close();
+//                        outputStream.close();
+//                        InputStream inputStream = httpURLConnection.getInputStream();
+//                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+//                        String result = "", line = "";
+//                        while ((line = bufferedReader.readLine()) != null) {
+//                            result += line;
+//                        }
+//                        return result;
+//                    } catch (Exception e) {
+//                        return e.toString();
+//                    }
 
-                        bufferedWriter.write(post_Data);
-                        bufferedWriter.flush();
-                        bufferedWriter.close();
-                        outputStream.close();
-                        InputStream inputStream = httpURLConnection.getInputStream();
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                        String result = "", line = "";
-                        while ((line = bufferedReader.readLine()) != null) {
-                            result += line;
-                        }
-                        return result;
-                    } catch (Exception e) {
-                        return e.toString();
-                    }
+                    return "";
                 }
             }
 

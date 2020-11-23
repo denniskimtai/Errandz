@@ -1,6 +1,7 @@
 package app.infiniverse.grocery;
 
 import android.app.AlertDialog;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,6 +11,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -51,6 +56,8 @@ public class ProductDetailActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private FirebaseAuth firebaseAuth;
 
+    private int cart_count = 0;
+
     private String string_product_id, product_name, product_description, product_price, product_selling_price, product_short_description, product_discount, product_image_url;
 
     private String userId;
@@ -58,6 +65,11 @@ public class ProductDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_detail);
+
+        Toolbar toolbar = findViewById(R.id.mytoolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("");
 
         //get strings from intent
         string_product_id = getIntent().getStringExtra("product_id");
@@ -181,10 +193,48 @@ public class ProductDetailActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String loginid = sp.getString("loginid", null);
                 if (loginid != null) {
-                    addToCart.addToCart(product_id.getText().toString(),"1");
-                    Intent intent = new Intent(getApplicationContext(), MyCart.class);
-                    startActivity(intent);
-                    finish();
+
+                    //create cart object
+                    final CartItems cartItems = new CartItems(string_product_id, product_name, product_description, product_price.replace("Ksh ",""), product_selling_price.replace("Ksh ",""),
+                            product_short_description, product_discount, product_image_url, "1");
+
+                    //check if product is in cart
+
+                    DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("Cart Items");
+                    postRef.child(userId).child(string_product_id).addListenerForSingleValueEvent(new ValueEventListener(){
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot){
+
+                            if(dataSnapshot.child("product_id").exists() && dataSnapshot.child("product_id").getValue().toString().equals(string_product_id)) {
+
+                                //product is in cart
+                                Toast.makeText(ProductDetailActivity.this, "Product is in your cart", Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(ProductDetailActivity.this, MyCart.class);
+                                intent.putExtra("userId", userId);
+                                finish();
+                                startActivity(intent);
+
+                            }else {
+
+                                //push to firebase
+                                mDatabase.child(userId).child(string_product_id).setValue(cartItems);
+
+                                Toast.makeText(ProductDetailActivity.this, "Product added to cart", Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(ProductDetailActivity.this, MyCart.class);
+                                intent.putExtra("userId", userId);
+                                finish();
+                                startActivity(intent);
+                            }
+
+                        }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
                 } else {
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(ProductDetailActivity.this);
@@ -229,6 +279,141 @@ public class ProductDetailActivity extends AppCompatActivity {
 //        ProductDetail productDetail = new ProductDetail();
 //        productDetail.execute();
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.home, menu);
+
+        final MenuItem menuItem = menu.findItem(R.id.cart);
+        MenuItem menuItem2 = menu.findItem(R.id.action_search);
+        menuItem2.setVisible(false);
+        menuItem.setIcon(Converter.convertLayoutToImage(ProductDetailActivity.this, cart_count, R.drawable.ic_shopping_cart_white));
+
+
+        if (sp.getString("loginid", null) != null) {
+            class GetCartItemCount extends AsyncTask<String, Void, String> {
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                }
+
+                @Override
+                protected void onPostExecute(String s) {
+                    super.onPostExecute(s);
+
+                    //get cart items from firebase
+                    mDatabase.child(firebaseAuth.getUid()).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                            if (dataSnapshot.exists()){
+
+                                cart_count = (int) dataSnapshot.getChildrenCount();
+                                menuItem.setIcon(Converter.convertLayoutToImage(ProductDetailActivity.this,cart_count,R.drawable.ic_shopping_cart_white));
+
+                            }else{
+
+                                cart_count = 0;
+                                menuItem.setIcon(Converter.convertLayoutToImage(ProductDetailActivity.this,cart_count,R.drawable.ic_shopping_cart_white));
+
+                            }
+
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
+                }
+
+                @Override
+                protected String doInBackground(String... params) {
+
+//                    String urls = getResources().getString(R.string.base_url).concat("getItemCount/");
+//                    try {
+//                        URL url = new URL(urls);
+//                        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+//                        httpURLConnection.setRequestMethod("POST");
+//                        httpURLConnection.setDoInput(true);
+//                        httpURLConnection.setDoOutput(true);
+//                        OutputStream outputStream = httpURLConnection.getOutputStream();
+//                        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+//                        String post_Data = URLEncoder.encode("login_id", "UTF-8") + "=" + URLEncoder.encode(params[0], "UTF-8");
+//
+//                        bufferedWriter.write(post_Data);
+//                        bufferedWriter.flush();
+//                        bufferedWriter.close();
+//                        outputStream.close();
+//                        InputStream inputStream = httpURLConnection.getInputStream();
+//                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+//                        String result = "", line = "";
+//                        while ((line = bufferedReader.readLine()) != null) {
+//                            result += line;
+//                        }
+//                        return result;
+//                    } catch (Exception e) {
+//                        return e.toString();
+//                    }
+
+                    return "";
+                }
+            }
+
+            //creating asynctask object and executing it
+            GetCartItemCount catItemObj = new GetCartItemCount();
+            catItemObj.execute(sp.getString("loginid", null));
+        }
+
+        SearchManager searchManager =
+                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+
+        int id = item.getItemId();
+
+        if (id == R.id.cart) {
+
+
+            if (sp.getString("loginid", null) != null) {
+                Intent i = new Intent(this, MyCart.class);
+                startActivity(i);
+                return true;
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(ProductDetailActivity.this);
+                builder.setTitle("Heyy..")
+                        .setMessage("To see your cart you have to login first. Do you want to login ")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent(ProductDetailActivity.this, LoginActivity.class);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("No Just Continue ", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                        .setCancelable(false);
+                builder.show();
+            }
+        }
+
+
+        return super.onOptionsItemSelected(item);
     }
 
     class ProductDetail extends AsyncTask<String, Void, String> {
