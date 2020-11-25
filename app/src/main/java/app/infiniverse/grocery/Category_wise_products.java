@@ -216,7 +216,7 @@ public class Category_wise_products extends AppCompatActivity implements AddorRe
                 Volley.newRequestQueue(Category_wise_products.this).add(request);
 
                 request.setRetryPolicy(new DefaultRetryPolicy(
-                        100000,
+                        200000,
                         DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                         DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 

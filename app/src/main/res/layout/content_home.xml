@@ -97,11 +97,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/delivery_text_box"
-                    android:layout_marginBottom="8dp"
+                    android:layout_marginBottom="20dp"
                     android:layout_marginTop="0dp"
-                    android:minHeight="480dp"
                     app:cardCornerRadius="3dp"
-                    app:cardElevation="4dp">
+                    app:cardElevation="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -168,6 +167,7 @@
             </RelativeLayout>
 
             <android.support.v7.widget.CardView
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="620dp"
                 android:layout_marginBottom="8dp"
@@ -176,6 +176,7 @@
                 app:cardElevation="4dp">
 
                 <LinearLayout
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/box4"

@@ -114,6 +114,8 @@ public class HomeActivity extends AppCompatActivity
 
     private String GET_CATEGORIES_URL = "http://errandz.xyz/woocommerce/get_categories.php";
 
+    private final String GET_PRODUCTS_URL = "http://errandz.xyz/woocommerce/get_products.php";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -585,7 +587,7 @@ public class HomeActivity extends AppCompatActivity
         });
 
         //Start download
-        new LoadGridImages().execute();
+//        new LoadGridImages().execute();
 
         mProgressBar.setVisibility(View.VISIBLE);
         class BestDeals extends AsyncTask<String, Void, String> {
@@ -594,33 +596,16 @@ public class HomeActivity extends AppCompatActivity
 
             @Override
             protected String doInBackground(String... params) {
-                String productUrl = "http://errandz.xyz/denniskimtai1/fetch_products.php";
 
-                try {
-                    URL url = new URL(productUrl);
 
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                    httpURLConnection.setRequestMethod("POST");
-                    httpURLConnection.setDoInput(true);
-                    httpURLConnection.setDoOutput(true);
-
-                    InputStream inputStream = httpURLConnection.getInputStream();
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String result = "", line = "";
-                    while ((line = bufferedReader.readLine()) != null) {
-                        result += line;
-                    }
-                    return result;
-                } catch (Exception e) {
-                    return e.toString();
-                }
+                return "";
             }
 
             @Override
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
                 final AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
-                builder.setTitle("Received Message");
+
 
 //                try {
 //
@@ -678,64 +663,91 @@ public class HomeActivity extends AppCompatActivity
 //                    builder.show();
 //                }
 
-                try {
-                    JSONObject productObject = new JSONObject(s);
+                StringRequest request = new StringRequest(Request.Method.GET,
+                        GET_PRODUCTS_URL, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
 
-                    Iterator iterator = productObject.keys();
-                    String key;
-                    final int i = 0;
+                        try {
 
-                    String[] product_ids = new String[productObject.length()];
-                    String[] product_names = new String[productObject.length()];
-                    String[] product_descs = new String[productObject.length()];
-                    final String[] product_imgs = new String[productObject.length()];
-                    String[] product_prices = new String[productObject.length()];
-                    String[] product_brands = new String[productObject.length()];
-                    String[] product_sps = new String[productObject.length()];
-                    String[] product_dps = new String[productObject.length()];
+                            JSONArray productArray = new JSONArray(response);
 
-                    while (iterator.hasNext()) {
-                        key = (String) iterator.next();
-
-                        final JSONObject obj = (JSONObject) productObject.get(key);
-
-                        JSONObject metaObjectThumbnailId = (JSONObject) obj.get("2");
-                        JSONObject metaObjectRegularPrice = (JSONObject) obj.get("3");
-                        JSONObject metaObjectSalePrice = (JSONObject) obj.get("4");
-
-                        product_ids[i] = obj.getString("product_id");
-                        product_names[i] = obj.getString("product_title");
-                        product_descs[i] = obj.getString("product_description");
-                        product_imgs[i] = metaObjectThumbnailId.getString("_thumbnail_id");
-                        product_prices[i] = metaObjectRegularPrice.getString("_regular_price") + " /-";
-                        product_brands[i] = obj.getString("product_short_description");
-                        product_sps[i] = metaObjectSalePrice.getString("_sale_price") + " /-";
-                        double p_mrp = Double.parseDouble(metaObjectRegularPrice.getString("_regular_price"));
-                        double p_sp = Double.parseDouble(metaObjectSalePrice.getString("_sale_price"));
-                        double p_dp = (p_mrp - p_sp) / (p_mrp / 100);
-                        int p_dp_i = (int) p_dp;
-                        product_dps[i] = String.valueOf(p_dp_i);
+                            String[] product_ids = new String[productArray.length()];
+                            String[] product_names = new String[productArray.length()];
+                            String[] product_descs = new String[productArray.length()];
+                            String[] product_imgs = new String[productArray.length()];
+                            String[] product_prices = new String[productArray.length()];
+                            String[] product_brands = new String[productArray.length()];
+                            String[] product_sps = new String[productArray.length()];
+                            String[] product_dps = new String[productArray.length()];
 
 
-                        l2.setVisibility(View.VISIBLE);
-                        mProgressBar.setVisibility(View.GONE);
+                            JSONObject json_data = new JSONObject();
+                            for (int i = 0; i < productArray.length(); i++) {
+                                json_data = productArray.getJSONObject(i);
+                                product_ids[i] = json_data.getString("product_id");
+                                product_names[i] = json_data.getString("product_name");
+                                product_descs[i] = json_data.getString("product_description").replace("<p>", "");
+                                product_imgs[i] = json_data.getString("product_image");
+                                product_prices[i] = json_data.getString("product_regular_price") + " /-";
+                                product_brands[i] = json_data.getString("product_short_description").replace("<p>", "");
+                                product_sps[i] = json_data.getString("product_price") + " /-";
+                                double p_mrp = Double.parseDouble(json_data.getString("product_regular_price"));
+                                double p_sp = Double.parseDouble(json_data.getString("product_price"));
+                                double p_dp = (p_mrp - p_sp) / (p_mrp / 100);
+                                int p_dp_i = (int) p_dp;
+                                product_dps[i] = String.valueOf(p_dp_i);
 
-                        RecyclerView product_recyclerview = findViewById(R.id.recyclerview_best_deals);
-                        product_recyclerview.setNestedScrollingEnabled(false);
-                        product_recyclerview.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
-                        product_recyclerview.setAdapter(new Recent_Products_Adapter(product_ids, product_names, product_descs, product_imgs, product_prices, product_brands, product_sps, product_dps, HomeActivity.this));
+
+                            }
+
+                            mProgressBar.setVisibility(View.GONE);
+
+                            if (productArray.length() == 0) {
+                                Toast.makeText(HomeActivity.this, "No products available", Toast.LENGTH_SHORT).show();
+                                l2.setVisibility(View.GONE);
+                            } else {
+                                l2.setVisibility(View.VISIBLE);
+                                RecyclerView product_recyclerview = findViewById(R.id.recyclerview_best_deals);
+                                product_recyclerview.setNestedScrollingEnabled(false);
+                                product_recyclerview.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
+                                product_recyclerview.setAdapter(new Recent_Products_Adapter(product_ids, product_names, product_descs, product_imgs, product_prices, product_brands, product_sps, product_dps, HomeActivity.this));
+
+
+                            }
+                        } catch (JSONException e) {
+                            builder.setCancelable(true);
+                            builder.setTitle("No Internet Connection1");
+//                    builder.setMessage(s);
+                            builder.setMessage("Please Connect to internet ");
+                            builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                }
+                            });
+                            builder.show();
+                        }
 
 
                     }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
 
+                        builder.setMessage(error.getMessage());
+                        builder.show();
 
+                    }
+                });
 
-                } catch (JSONException e) {
+                Volley.newRequestQueue(HomeActivity.this).add(request);
 
-                    builder.setMessage(e.getMessage());
-                    builder.show();
+                request.setRetryPolicy(new DefaultRetryPolicy(
+                        200000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
-                }
 
             }
 
